@@ -1,22 +1,17 @@
-import { Dot } from "./Dot";
+import { getTimestamp, releaseControl } from "./utility";
+import { World } from "./World";
+
+/**
+ * Setup canvas
+ */
 export let canvas = document.getElementById("canvas");
 canvas.width = canvas.getClientRects()[0].width;
 canvas.height = canvas.getClientRects()[0].height;
 
-function getTimestamp() {
-  let d = new Date();
-  return d.getTime();
-}
-
-async function releaseControl(time) {
-  if (typeof(time) === "undefined") time = 0;
-  return new Promise((resolve, reject) => {
-    setTimeout(() => { resolve()} , time);
-  })
-}
-
-
-console.log("here")
+/**
+ * Create world
+ */
+const world = new World(canvas);
 
 /**
  *  Game loop core
@@ -25,27 +20,22 @@ console.log("here")
 let framesPerSecond = 100.0; // Initial estimate, will be ajusted dynamically
 let lastFramesPerSecond = 100.0;
 let frameDuration = 1000.0 / framesPerSecond; // Initial estimate, will be ajusted dynamically.
-
-// Set limitations
-let framesPerSecondMax = 100.0;
-let frameDurationMin = 1000.0 / framesPerSecondMax; 
-
 let averageFramesPerSecond = framesPerSecond;
 
-const testDot = new Dot({x: 50, y: 50});
-console.log(testDot);
+// Set limitations
+let framesPerSecondMax = 200.0;
+let frameDurationMin = 1000.0 / framesPerSecondMax; 
+
+let running = true; 
 
 async function renderloop() {
   let loopStartTimestamp = null;
-  while(true) {
-    console.log("renderLoop")
+  while(running) {
     loopStartTimestamp = getTimestamp();
 
     // Perform all actions
-    // accellerateObjects();
-    moveObjects();
-    // collideObjects();
-    renderWorld();
+    world.update(frameDuration);
+    world.render(canvas, averageFramesPerSecond);
     await releaseControl(0); // To make drawing happen
     
     const loopEndTimeStamp = getTimestamp();
@@ -61,33 +51,5 @@ async function renderloop() {
 
 renderloop()
 
-console.log(canvas);
 
-function moveObjects() {
-  // console.log(testDot.x);
-  testDot.x += 1;
-  testDot.y += 1;
-} 
-
-function renderWorld() {
-  let context = canvas.getContext("2d");
-	context.clearRect(0, 0, canvas.width, canvas.height);
-  context.beginPath();
-  context.moveTo(0,0);
-
-  context = canvas.getContext("2d");
-  context.font = "12px serif";
-  context.moveTo(0,0);
-  context.fillText("FPS: " + averageFramesPerSecond, 10, 50);
-  context.moveTo(0,0);
-  
-  context = canvas.getContext("2d");
-  context.beginPath();
-  context.arc(testDot.x, testDot.y, 10, 0, 2 * Math.PI, false);
-  context.fillStyle = 'black';
-  context.fill();
-  context.lineWidth = 5;
-  context.strokeStyle = 'black';
-  context.stroke();
-  context.moveTo(0,0);
-}
+setTimeout(() => { running = false; }, 5000);
