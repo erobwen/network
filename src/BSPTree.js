@@ -131,13 +131,13 @@ export class BSPTree {
     let xPos = centerDot.x; 
     if (minX !== null) {
       if (maxX !== null) {
-        horizontalCollision = minX-radius <= xPos && xPos >= maxX+radius;
+        horizontalCollision = minX-radius <= xPos && xPos <= maxX+radius;
       } else {
         horizontalCollision = minX-radius <= xPos;
       }
     } else {
       if (maxX !== null) {
-        horizontalCollision = xPos >= maxX+radius;
+        horizontalCollision = xPos <= maxX+radius;
       } else {
         horizontalCollision = true; 
       }
@@ -148,20 +148,20 @@ export class BSPTree {
     let yPos = centerDot.y; 
     if (minY !== null) {
       if (maxY !== null) {
-        horizontalCollision = minY-radius <= yPos && yPos >= maxY+radius;
+        verticalCollision = minY-radius <= yPos && yPos <= maxY+radius;
       } else {
-        horizontalCollision = minY-radius <= yPos;
+        verticalCollision = minY-radius <= yPos;
       }
     } else {
       if (maxY !== null) {
-        horizontalCollision = yPos >= maxY+radius;
+        verticalCollision = yPos <= maxY+radius;
       } else {
-        horizontalCollision = true; 
+        verticalCollision = true; 
       }
     }
     
     if (verticalCollision && horizontalCollision) {
-      log("Collision!")
+      // log("Collision!")
       if (this.lowPartition) {
         if (!this.highPartition) throw Error("should always have two partitions!");
         this.lowPartition.circleCollision(centerDot, radius, result);
@@ -183,9 +183,10 @@ export class BSPTree {
       const dy = Math.abs(y-otherDot.y);
       const distance = Math.sqrt(dx*dx + dy*dy);
       otherDot.distance = distance; 
+      // log(`dx:${dx} dy:${dy} distance: ${distance}`);
 
-      if (distance <= radius && otherDot.id < centerDot.id) { // Note: Id check guarantees unique edges.
-        result.push(otherDot);
+      if (distance <= radius) { // Note: Id check guarantees unique edges.
+        result.push(otherDot); //  && otherDot.id < centerDot.id
       }
       index++;
     }

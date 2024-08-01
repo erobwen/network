@@ -7,8 +7,8 @@ const log = console.log;
 export class World {
   constructor(canvas) {
     this.dots = [];
-    this.connectionRadius = 10;
-    const dotCount = 50; 
+    this.connectionRadius = 300;
+    const dotCount = 100; 
     let created = 0; 
     while (created++ < dotCount) {
       this.dots.push(new Dot({
@@ -77,9 +77,11 @@ export class World {
       context.moveTo(0,0);
 
       dot.connections.forEach((otherDot) => {
+        const strength = (this.connectionRadius - otherDot.distance)/this.connectionRadius;
+        const color = `rgba(0, 0, 0, ${strength})`
         context.beginPath();
-        context.lineWidth = Math.round(10 * (this.connectionRadius - otherDot.distance));
-        context.strokeStyle = 'black';
+        context.lineWidth = Math.round(10 * strength);
+        context.strokeStyle = color;
         context.moveTo(dot.x, dot.y);
         context.lineTo(otherDot.x, otherDot.y);
         context.stroke();

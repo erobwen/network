@@ -13,14 +13,14 @@ test('partition odd', () => {
   ] 
   const bspTree = new BSPTree(dots, 0, dots.length-1, null, true, false);
   bspTree.doNotPartitionSize = 3;
-  const [pivotIndex, _] = bspTree.partition(bspTree)
+  const [pivotIndex, pivotValue] = bspTree.partition(bspTree)
   expect(dots[0].x).toBe(1);
   expect(dots[1].x).toBe(2);
   expect(dots[2].x).toBe(3);
   expect(dots[3].x).toBe(4);
   expect(dots[4].x).toBe(5);
-  console.log("result: " + pivotIndex)
   expect(pivotIndex).toBe(2);
+  expect(pivotValue).toBe(3);
 })
 
 test('partition even', () => {
@@ -37,7 +37,6 @@ test('partition even', () => {
   expect(dots[1].x).toBe(3);
   expect(dots[2].x).toBe(2);
   expect(dots[3].x).toBe(4);
-  console.log("result: " + pivotIndex)
   expect(pivotIndex).toBe(2);
 })
 
@@ -68,8 +67,7 @@ test('off center partition', () => {
   ] 
   const bspTree = new BSPTree(dots, 0, dots.length-1, null, true, false);
   bspTree.doNotPartitionSize = 3;
-  const result = bspTree.partition(bspTree)
-  log(result);
+  const result = bspTree.partition(bspTree);
   const [pivotIndex, _] = result;
   expect(dots[0].x).toBe(1);
   expect(dots[1].x).toBe(2);
@@ -89,12 +87,12 @@ test('test no partition possible', () => {
   ] 
   const bspTree = new BSPTree(dots, 0, dots.length-1, null, true, false);
   bspTree.doNotPartitionSize = 3;
-  const pivotIndex = bspTree.partition(bspTree)
+  const result = bspTree.partition(bspTree)
   expect(dots[0].x).toBe(3);
   expect(dots[1].x).toBe(3);
   expect(dots[2].x).toBe(3);
   expect(dots[3].x).toBe(3);
   expect(dots[4].x).toBe(3);
-  expect(pivotIndex).toBe(null);
+  expect(result).toBe(null);
 })
 

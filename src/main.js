@@ -23,7 +23,7 @@ let frameDuration = 1000.0 / framesPerSecond; // Initial estimate, will be ajust
 let averageFramesPerSecond = framesPerSecond;
 
 // Set limitations
-let framesPerSecondMax = 200.0;
+let framesPerSecondMax = 500.0;
 let frameDurationMin = 1000.0 / framesPerSecondMax; 
 
 let running = true; 
@@ -52,4 +52,4 @@ async function renderloop() {
 renderloop()
 
 
-setTimeout(() => { running = false; }, 5000);
+// setTimeout(() => { running = false; }, 5000);
