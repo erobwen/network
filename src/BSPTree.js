@@ -7,20 +7,26 @@ function swap(array, ia, ib) {
   array[ib] = a; 
 }
 
+const defaultConfig = {
+  doNotPartitionSize: 5,
+  build: true
+}
 
 export class BSPTree {
-  constructor(dots, startIndex, endIndex, bounds, horizontal=true, build=true) {
-    if (!bounds) bounds = {minX: null, maxX: null, minY: null, maxY: null}
+  constructor(dots, startIndex, endIndex, horizontal=true, bounds=null, config=defaultConfig) {
     this.horizontal = horizontal;
     this.startIndex = startIndex;
     this.endIndex = endIndex; 
     this.dots = dots; 
+    
+    if (!bounds) bounds = {minX: null, maxX: null, minY: null, maxY: null}
     this.bounds = bounds; 
-    this.doNotPartitionSize=5; 
     this.pivotValue = null;
     this.pivotIndex = null;
-    // log("constructor...")
-    if (build) this.build();
+
+    this.config = config; 
+
+    if (config.build) this.build();
   }
 
   build() {
@@ -34,19 +40,19 @@ export class BSPTree {
     if (pivotResult === null) return; 
 
     const [pivotIndex, pivotValue] = pivotResult;
-    // console.log(pivotResult)
-    // console.log(bounds);
-
     this.pivotIndex = pivotIndex;
     this.pivotValue = pivotValue; 
 
+    // console.log(pivotResult)
+    // console.log(bounds);
+    
     // console.log("first")
     const lowLimitation = horizontal ? {maxX: pivotValue} : {maxY: pivotValue};
-    this.lowPartition = new BSPTree(dots, startIndex, pivotIndex, {...bounds, ...lowLimitation}, !horizontal);
+    this.lowPartition = new BSPTree(dots, startIndex, pivotIndex, !horizontal, {...bounds, ...lowLimitation});
     
     // console.log("second");
     const highLimitation = horizontal ? {minX: pivotValue + 1} : {minY: pivotValue + 1};
-    this.highPartition = new BSPTree(dots, pivotIndex + 1, endIndex, {...bounds, ...highLimitation}, !horizontal);
+    this.highPartition = new BSPTree(dots, pivotIndex + 1, endIndex, !horizontal, {...bounds, ...highLimitation});
   }
 
   partition() {
@@ -84,11 +90,14 @@ export class BSPTree {
     return [partitionIndex, pivotValue];
   }
 
-  findPartitioningPivot(axis) {
-    if (this.endIndex - this.startIndex < this.doNotPartitionSize) return null;
 
-    // Note: find a pivot that is guaranteed to create two partitions, to avoid infinite loops. Otherwise, return null.  
-    // For this pivot point, there exists another element that is strictly larger.
+  /**
+   * Note: find a pivot that is guaranteed to create two partitions, to avoid infinite loops. Otherwise, return null.  
+   * For this pivot point, there exists another element that is strictly larger. 
+   */
+  findPartitioningPivot(axis) {
+    if ((this.endIndex - this.startIndex) < this.config.doNotPartitionSize) return null;
+
     const { dots } = this;
     const candidatePivotIndex = this.startIndex + Math.floor((this.endIndex - this.startIndex)/2); 
     const candiatePivotDot = dots[candidatePivotIndex];
@@ -119,6 +128,7 @@ export class BSPTree {
       high++;
       low--;
     }
+    log("here");
     return null; // Impossible to find partitioning pivot! All are equal! 
   }
 
