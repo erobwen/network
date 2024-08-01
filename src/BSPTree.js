@@ -121,5 +121,75 @@ export class BSPTree {
     }
     return null; // Impossible to find partitioning pivot! All are equal! 
   }
+
+  circleCollision(centerDot, radius, result=[]) {
+    const bounds = this.bounds; 
+    const {maxX, minX, maxY, minY} = bounds;
+
+    // Horizontal collision
+    let horizontalCollision = false;
+    let xPos = centerDot.x; 
+    if (minX !== null) {
+      if (maxX !== null) {
+        horizontalCollision = minX-radius <= xPos && xPos >= maxX+radius;
+      } else {
+        horizontalCollision = minX-radius <= xPos;
+      }
+    } else {
+      if (maxX !== null) {
+        horizontalCollision = xPos >= maxX+radius;
+      } else {
+        horizontalCollision = true; 
+      }
+    }
+
+    // Vertial collision
+    let verticalCollision = false;
+    let yPos = centerDot.y; 
+    if (minY !== null) {
+      if (maxY !== null) {
+        horizontalCollision = minY-radius <= yPos && yPos >= maxY+radius;
+      } else {
+        horizontalCollision = minY-radius <= yPos;
+      }
+    } else {
+      if (maxY !== null) {
+        horizontalCollision = yPos >= maxY+radius;
+      } else {
+        horizontalCollision = true; 
+      }
+    }
+    
+    if (verticalCollision && horizontalCollision) {
+      log("Collision!")
+      if (this.lowPartition) {
+        if (!this.highPartition) throw Error("should always have two partitions!");
+        this.lowPartition.circleCollision(centerDot, radius, result);
+        this.highPartition.circleCollision(centerDot, radius, result);
+      } else {
+        this.collideCircleAgainstContent(centerDot, radius, result);
+      }
+    }
+
+    return result; 
+  }
+
+  collideCircleAgainstContent(centerDot, radius, result) {
+    let index = this.startIndex;
+    const {x, y} = centerDot;
+    while(index <= this.endIndex) {
+      const otherDot = this.dots[index];
+      const dx = Math.abs(x-otherDot.x);
+      const dy = Math.abs(y-otherDot.y);
+      const distance = Math.sqrt(dx*dx + dy*dy);
+      otherDot.distance = distance; 
+
+      if (distance <= radius && otherDot.id < centerDot.id) { // Note: Id check guarantees unique edges.
+        result.push(otherDot);
+      }
+      index++;
+    }
+  }
 }
+
 

@@ -8,7 +8,7 @@ export class World {
   constructor(canvas) {
     this.dots = [];
     this.connectionRadius = 10;
-    const dotCount = 1000; 
+    const dotCount = 50; 
     let created = 0; 
     while (created++ < dotCount) {
       this.dots.push(new Dot({
@@ -38,10 +38,10 @@ export class World {
   collideObjects() {
     this.collideWithWalls();
     this.BSPTree = new BSPTree(this.dots, 0, this.dots.length-1);
-    // console.log(this.BSPTree);
-    // for (let dot of this.dots) {
-    //   dot.connections = this.BSPTree.findDotsWithinRadius(dot, this.connectionRadius);
-    // }
+    for (let dot of this.dots) {
+      dot.connections = this.BSPTree.circleCollision(dot, this.connectionRadius);
+      // console.log(dot.connections);
+    }
   }
 
   collideWithWalls() {
@@ -75,6 +75,15 @@ export class World {
       context.strokeStyle = 'black';
       context.stroke();
       context.moveTo(0,0);
+
+      dot.connections.forEach((otherDot) => {
+        context.beginPath();
+        context.lineWidth = Math.round(10 * (this.connectionRadius - otherDot.distance));
+        context.strokeStyle = 'black';
+        context.moveTo(dot.x, dot.y);
+        context.lineTo(otherDot.x, otherDot.y);
+        context.stroke();
+      })
     })
 
     this.renderBSPTree(this.BSPTree, 5);
