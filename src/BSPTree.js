@@ -30,12 +30,8 @@ export class BSPTree {
   }
 
   build() {
-    // console.log("Build.")
     const {dots, startIndex, endIndex, bounds, horizontal} = this; 
   
-    // console.log(`startIndex: ${startIndex} endIndex: ${endIndex} horizontal:${horizontal}`)
-    // console.log(dots.slice(startIndex, endIndex + 1).map(dot => dot[horizontal?"x":"y"]));
-
     const pivotResult = this.partition();
     if (pivotResult === null) return; 
 
@@ -43,14 +39,9 @@ export class BSPTree {
     this.pivotIndex = pivotIndex;
     this.pivotValue = pivotValue; 
 
-    // console.log(pivotResult)
-    // console.log(bounds);
-    
-    // console.log("first")
     const lowLimitation = horizontal ? {maxX: pivotValue} : {maxY: pivotValue};
     this.lowPartition = new BSPTree(dots, startIndex, pivotIndex, !horizontal, {...bounds, ...lowLimitation});
     
-    // console.log("second");
     const highLimitation = horizontal ? {minX: pivotValue + 1} : {minY: pivotValue + 1};
     this.highPartition = new BSPTree(dots, pivotIndex + 1, endIndex, !horizontal, {...bounds, ...highLimitation});
   }
@@ -62,29 +53,20 @@ export class BSPTree {
     const pivotIndex = this.findPartitioningPivot(axis); 
     if (pivotIndex === null) return null; 
     const pivotValue = dots[pivotIndex][axis];
-    // log("pivot value: " + pivotValue)
 
     let low = startIndex;
     let high = endIndex;
     
     while(low < high) {
-      // log("loop")
-      // log(`low: ${low}, high: ${high}`);
-      // log("scanning...");
       while(dots[low][axis] <= pivotValue && low < endIndex) low++;
       while(dots[high][axis] > pivotValue) high--;
-      // log(`low: ${low}, high: ${high}`)
       if (low < high) {
-        // log("swap:")
-        // log(dots.map(dot => dot[axis]));
         swap(dots, low, high);
-        // log(dots.map(dot => dot[axis]));
         
         low++;
         high--;
       }
     }
-    // log(`low: ${low}, high: ${high}`)
     const partitionIndex = (low === high) ? (dots[low][axis] <= pivotValue ? low : low - 1) : low - 1 
     if (partitionIndex < startIndex || partitionIndex > endIndex) throw new Error("Partition index out of bounds!");
     return [partitionIndex, pivotValue];
@@ -128,7 +110,6 @@ export class BSPTree {
       high++;
       low--;
     }
-    log("here");
     return null; // Impossible to find partitioning pivot! All are equal! 
   }
 
@@ -141,13 +122,13 @@ export class BSPTree {
     let xPos = centerDot.x; 
     if (minX !== null) {
       if (maxX !== null) {
-        horizontalCollision = minX-radius <= xPos && xPos <= maxX+radius;
+        horizontalCollision = ((minX - radius) <= xPos) && (xPos <= (maxX + radius));
       } else {
-        horizontalCollision = minX-radius <= xPos;
+        horizontalCollision = (minX - radius) <= xPos;
       }
     } else {
       if (maxX !== null) {
-        horizontalCollision = xPos <= maxX+radius;
+        horizontalCollision = xPos <= (maxX+radius);
       } else {
         horizontalCollision = true; 
       }
@@ -158,20 +139,19 @@ export class BSPTree {
     let yPos = centerDot.y; 
     if (minY !== null) {
       if (maxY !== null) {
-        verticalCollision = minY-radius <= yPos && yPos <= maxY+radius;
+        verticalCollision = ((minY - radius) <= yPos) && (yPos <= (maxY + radius));
       } else {
-        verticalCollision = minY-radius <= yPos;
+        verticalCollision = (minY - radius) <= yPos;
       }
     } else {
       if (maxY !== null) {
-        verticalCollision = yPos <= maxY+radius;
+        verticalCollision = yPos <= (maxY + radius);
       } else {
         verticalCollision = true; 
       }
     }
     
     if (verticalCollision && horizontalCollision) {
-      // log("Collision!")
       if (this.lowPartition) {
         if (!this.highPartition) throw Error("should always have two partitions!");
         this.lowPartition.circleCollision(centerDot, radius, result);
@@ -186,19 +166,12 @@ export class BSPTree {
 
   collideCircleAgainstContent(centerDot, radius, result) {
     let index = this.startIndex;
-    const {x, y} = centerDot;
     while(index <= this.endIndex) {
-      const otherDot = this.dots[index];
-      const dx = Math.abs(x-otherDot.x);
-      const dy = Math.abs(y-otherDot.y);
-      const distance = Math.sqrt(dx*dx + dy*dy);
-      otherDot.distance = distance; 
-      // log(`dx:${dx} dy:${dy} distance: ${distance}`);
-
-      if (distance <= radius) { // Note: Id check guarantees unique edges.
-        result.push(otherDot); //  && otherDot.id < centerDot.id
+      const otherDot = this.dots[index++];
+      if (otherDot === centerDot) continue;
+      if (centerDot.distanceTo(otherDot) <= radius && centerDot.id < otherDot.id) { // Note: Id check guarantees unique edges.
+        result.push(otherDot); 
       }
-      index++;
     }
   }
 }

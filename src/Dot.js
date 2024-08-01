@@ -11,4 +11,10 @@ export class Dot {
     this.connectionRadius = connectionRadius;
     this.connections=[];
   }
+
+  distanceTo(otherDot) {
+    const dx = Math.abs(this.x - otherDot.x);
+    const dy = Math.abs(this.y - otherDot.y);
+    return Math.sqrt(dx*dx + dy*dy);
+  }
 }

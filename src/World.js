@@ -77,10 +77,13 @@ export class World {
       context.moveTo(0,0);
 
       dot.connections.forEach((otherDot) => {
-        const strength = (this.connectionRadius - otherDot.distance)/this.connectionRadius;
+        const distance = dot.distanceTo(otherDot);
+        let strength = Math.max(0, this.connectionRadius - distance)/this.connectionRadius;
+        strength = Math.round(strength * 100) / 100
         const color = `rgba(0, 0, 0, ${strength})`
+        // log(color)
         context.beginPath();
-        context.lineWidth = Math.round(10 * strength);
+        context.lineWidth = Math.ceil(10 * strength);
         context.strokeStyle = color;
         context.moveTo(dot.x, dot.y);
         context.lineTo(otherDot.x, otherDot.y);
@@ -88,7 +91,7 @@ export class World {
       })
     })
 
-    this.renderBSPTree(this.BSPTree, 5);
+    // this.renderBSPTree(this.BSPTree, 5);
   }
 
   renderBSPTree(bspTree, level) {
@@ -99,7 +102,6 @@ export class World {
     if (bspTree.horizontal) {
       const topBound = Math.max(0, (bspTree.bounds.minY !== null) ? bspTree.bounds.minY : 0);
       const bottomBound = Math.min(canvas.height, (bspTree.bounds.maxY !== null) ? bspTree.bounds.maxY : canvas.height);
-      // debugger; 
       context.beginPath();
       context.moveTo(bspTree.pivotValue, topBound);
       context.lineTo(bspTree.pivotValue, bottomBound);
