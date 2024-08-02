@@ -6,6 +6,10 @@ function swap(array, ia, ib) {
   array[ib] = a; 
 }
 
+function between(a, b) {
+  return Math.round((a + b)/2);
+}
+
 const defaultConfig = {
   doNotPartitionSize: 5,
   build: true
@@ -90,7 +94,7 @@ export class BSPTree {
     if ((this.endIndex - this.startIndex) < this.config.doNotPartitionSize) return null;
     const { dots } = this;
 
-    const candidatePivotIndex = this.findPivotCandidate();
+    const candidatePivotIndex = this.findPivotCandidate(axis);
     const candidateValue = dots[candidatePivotIndex][axis];
     let low = candidatePivotIndex - 1; 
     let high = candidatePivotIndex + 1;
@@ -122,9 +126,21 @@ export class BSPTree {
     return null; // Impossible to find partitioning pivot! All are equal! 
   }
 
-  findPivotCandidate() {
-    const candidatePivotIndex = this.startIndex + Math.ceil((this.endIndex - this.startIndex)/2); 
-    return candidatePivotIndex;
+  findPivotCandidate(axis) {
+    // Easiest way
+    // return between(this.startIndex, this.endIndex);
+
+    // Find the middle out of 5.
+    const sample = (index) => ({index, value: this.dots[index]});
+    const samples = [];
+    const middle = between(this.startIndex, this.endIndex);
+    samples.push(sample(this.startIndex));
+    samples.push(sample(between(this.startIndex, middle)));
+    samples.push(sample(middle));
+    samples.push(sample(between(middle, this.endIndex)));
+    samples.push(sample(this.endIndex));
+    samples.sort((a, b) => (a.value - b.value));
+    return samples[2].index;
   }
 
   circleCollision(centerDot, radius, result=[]) {
