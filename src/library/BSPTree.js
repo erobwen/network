@@ -1,4 +1,3 @@
-const log = console.log; 
 
 function swap(array, ia, ib) {
   if (ia === ib) return;
@@ -182,6 +181,36 @@ export class BSPTree {
       if (centerDot.distanceTo(otherDot) <= radius) {
         result.push(otherDot); 
       }
+    }
+  }
+
+  render(context, strength) {
+    context.lineWidth = Math.max(strength, 1);
+    context.strokeStyle = 'blue';
+    if (this.pivotValue === null) return;
+
+    if (this.horizontal) {
+      const topBound = Math.max(0, (this.bounds.lowerLimitY !== null) ? this.bounds.lowerLimitY : 0);
+      const bottomBound = Math.min(canvas.height, (this.bounds.maxY !== null) ? this.bounds.maxY : canvas.height);
+      context.beginPath();
+      context.moveTo(this.pivotValue, topBound);
+      context.lineTo(this.pivotValue, bottomBound);
+      context.stroke();
+    } else {
+      const leftBound = Math.max(0, (this.bounds.lowerLimitX !== null) ? this.bounds.lowerLimitX : 0);
+      const rightBound = Math.min(canvas.width, (this.bounds.maxX !== null) ? this.bounds.maxX : canvas.width);
+      context.beginPath();
+      context.moveTo(leftBound, this.pivotValue);
+      context.lineTo(rightBound, this.pivotValue);
+      context.stroke();
+    }
+
+    if (this.lowPartition) {
+      this.lowPartition.render(context, strength-1);
+    }
+
+    if (this.highPartition) {
+      this.highPartition.render(context, strength-1);
     }
   }
 }

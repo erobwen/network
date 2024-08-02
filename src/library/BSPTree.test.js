@@ -1,7 +1,6 @@
 import { expect, test, describe, it, vi } from 'vitest'
 import { BSPTree } from "./BSPTree";
-import { Dot } from "./Dot";
-const log = console.log; 
+import { Dot } from "../model/Dot";
 
 
 /**

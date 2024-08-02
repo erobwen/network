@@ -1,8 +1,6 @@
-import { BSPTree } from "./BSPTree";
-import { Dot } from "./Dot";
+import { BSPTree } from "./library/BSPTree";
+import { Dot } from "./model/Dot";
 import { getRandomInt, getRandomNumber } from "./utility";
-
-const log = console.log;
 
 export class World {
   constructor(canvas) {
@@ -42,7 +40,6 @@ export class World {
       let connections = this.BSPTree.circleCollision(dot, this.connectionRadius);
       connections = connections.filter(otherDot => otherDot.id < dot.id);  // Note: Id check guarantees unique edges.
       dot.connections = connections;
-      // console.log(dot.connections);
     }
   }
 
@@ -59,73 +56,23 @@ export class World {
 
   render(canvas, averageFramesPerSecond) {
     let context = canvas.getContext("2d");
+
+    // Clear frame
     context.clearRect(0, 0, canvas.width, canvas.height);
-    context.beginPath();
-    context.moveTo(0,0);
-
-    this.renderBSPTree(this.BSPTree, 5);
+    
+    // Debug, render BSP tree
+    this.BSPTree.render(context, 5);
      
-    context = canvas.getContext("2d");
+    // Render all dots
     this.dots.forEach((dot) => {
-      context.beginPath();
-      context.arc(dot.x, dot.y, dot.size, 0, 2 * Math.PI, false);
-      context.fillStyle = 'black';
-      context.fill();
-      context.lineWidth = 5;
-      context.strokeStyle = 'black';
-      context.stroke();
-      context.moveTo(0,0);
-
-      dot.connections.forEach((otherDot) => {
-        const distance = dot.distanceTo(otherDot);
-        let strength = Math.max(0, this.connectionRadius - distance)/this.connectionRadius;
-        strength = Math.round(strength * 100) / 100
-        const color = `rgba(0, 0, 0, ${strength})`
-        // log(color)
-        context.beginPath();
-        context.lineWidth = Math.ceil(10 * strength);
-        context.strokeStyle = color;
-        context.moveTo(dot.x, dot.y);
-        context.lineTo(otherDot.x, otherDot.y);
-        context.stroke();
-      })
+      dot.render(context, this.connectionRadius);
     })
 
-    context = canvas.getContext("2d");
-    context.font = "12px serif";
+    // Render FPS
+    context.font = "20px serif";
     context.moveTo(0,0);
-    context.fillText("FPS: " + averageFramesPerSecond, 10, 50);
+    context.fillText("FPS: " + Math.round(averageFramesPerSecond), 10, 50);
     context.moveTo(0,0);
-  }
-
-  renderBSPTree(bspTree, level) {
-    const context = canvas.getContext("2d");
-    context.lineWidth = Math.max(level, 1);
-    if (bspTree.pivotValue === null) return;
-
-    if (bspTree.horizontal) {
-      const topBound = Math.max(0, (bspTree.bounds.lowerLimitY !== null) ? bspTree.bounds.lowerLimitY : 0);
-      const bottomBound = Math.min(canvas.height, (bspTree.bounds.maxY !== null) ? bspTree.bounds.maxY : canvas.height);
-      context.beginPath();
-      context.moveTo(bspTree.pivotValue, topBound);
-      context.lineTo(bspTree.pivotValue, bottomBound);
-      context.stroke();
-    } else {
-      const leftBound = Math.max(0, (bspTree.bounds.lowerLimitX !== null) ? bspTree.bounds.lowerLimitX : 0);
-      const rightBound = Math.min(canvas.width, (bspTree.bounds.maxX !== null) ? bspTree.bounds.maxX : canvas.width);
-      context.beginPath();
-      context.moveTo(leftBound, bspTree.pivotValue);
-      context.lineTo(rightBound, bspTree.pivotValue);
-      context.stroke();
-    }
-
-    if (bspTree.lowPartition) {
-      this.renderBSPTree(bspTree.lowPartition, level-1);
-    }
-
-    if (bspTree.highPartition) {
-      this.renderBSPTree(bspTree.highPartition, level-1);
-    }
   }
 }
 
