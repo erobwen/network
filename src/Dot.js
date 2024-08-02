@@ -1,8 +1,9 @@
 
+let nextId = 0;
 
 export class Dot {
   constructor({id, x, y, dx, dy, size, connectionRadius}) {
-    this.id = id;
+    this.id = nextId++;
     this.x = x; 
     this.y = y; 
     this.dx = dx; 

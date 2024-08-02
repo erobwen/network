@@ -14,18 +14,20 @@ canvas.height = canvas.getClientRects()[0].height;
 const world = new World(canvas);
 
 /**
- *  Game loop core
+ *  Render loop
  */ 
+
 // Actual frame speed
 let framesPerSecond = 100.0; // Initial estimate, will be ajusted dynamically
 let lastFramesPerSecond = 100.0;
 let frameDuration = 1000.0 / framesPerSecond; // Initial estimate, will be ajusted dynamically.
 let averageFramesPerSecond = framesPerSecond;
 
-// Set limitations
+// FPS set limitations
 let framesPerSecondMax = 500.0;
 let frameDurationMin = 1000.0 / framesPerSecondMax; 
 
+// To terminate
 let running = true; 
 
 async function renderloop() {
@@ -36,14 +38,18 @@ async function renderloop() {
     // Perform all actions
     world.update(frameDuration);
     world.render(canvas, averageFramesPerSecond);
-    await releaseControl(0); // To make drawing happen
+
+    // To make drawing happen
+    await releaseControl(0); 
     
+    // Calculate FPS
     const loopEndTimeStamp = getTimestamp();
     frameDuration = loopEndTimeStamp - loopStartTimestamp;
     lastFramesPerSecond = framesPerSecond;
     framesPerSecond = Math.min(1000.0 / frameDuration, framesPerSecondMax);
     averageFramesPerSecond = (averageFramesPerSecond + framesPerSecond) / 2;
 
+    // Wait if FPS is capped and we are early. 
     const waitTime = Math.max(0, frameDurationMin - frameDuration);
     await releaseControl(waitTime);
   }    

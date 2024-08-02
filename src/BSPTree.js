@@ -19,10 +19,10 @@ export class BSPTree {
     this.endIndex = endIndex; 
     this.dots = dots; 
     
-    if (!bounds) bounds = {minX: null, maxX: null, minY: null, maxY: null}
+    if (!bounds) bounds = {lowerLimitX: null, maxX: null, lowerLimitY: null, maxY: null}
     this.bounds = bounds; 
     this.pivotValue = null;
-    this.pivotIndex = null;
+    this.partitionIndex = null;
 
     this.config = config; 
 
@@ -30,27 +30,36 @@ export class BSPTree {
   }
 
   build() {
-    const {dots, startIndex, endIndex, bounds, horizontal} = this; 
-  
-    const pivotResult = this.partition();
-    if (pivotResult === null) return; 
+    const {dots, startIndex, endIndex, bounds, horizontal} = this;
+    const partitionResult = this.partition();
+    if (partitionResult === null) return;
 
-    const [pivotIndex, pivotValue] = pivotResult;
-    this.pivotIndex = pivotIndex;
+    const [partitionIndex, pivotValue] = partitionResult;
+    this.partitionIndex = partitionIndex;
     this.pivotValue = pivotValue; 
 
     const lowLimitation = horizontal ? {maxX: pivotValue} : {maxY: pivotValue};
-    this.lowPartition = new BSPTree(dots, startIndex, pivotIndex, !horizontal, {...bounds, ...lowLimitation});
+    this.lowPartition = new BSPTree(dots, startIndex, partitionIndex, !horizontal, {...bounds, ...lowLimitation}, this.config);
     
-    const highLimitation = horizontal ? {minX: pivotValue + 1} : {minY: pivotValue + 1};
-    this.highPartition = new BSPTree(dots, pivotIndex + 1, endIndex, !horizontal, {...bounds, ...highLimitation});
+    const highLimitation = horizontal ? {lowerLimitX: pivotValue} : {lowerLimitY: pivotValue};
+    this.highPartition = new BSPTree(dots, partitionIndex + 1, endIndex, !horizontal, {...bounds, ...highLimitation}, this.config);
   }
 
+  /**
+   * Partition
+   * 
+   * @returns [partitionIndex, pivotValue]
+   * 
+   * partitionIndex is the last index of the first partition. 
+   * all elements in the first partition are <= pivot value. 
+   * all elements in teh second partition are > pivot value. 
+   */
   partition() {
+    // Note: this is a modified version of the Quicksort algorithm. A difference is that strict inequality is guaranteed between the different partitions. 
     const {dots, startIndex, endIndex, horizontal} = this; 
     const axis = horizontal ? "x" : "y";
   
-    const pivotIndex = this.findPartitioningPivot(axis); 
+    const pivotIndex = this.findPivot(axis); 
     if (pivotIndex === null) return null; 
     const pivotValue = dots[pivotIndex][axis];
 
@@ -69,6 +78,7 @@ export class BSPTree {
     }
     const partitionIndex = (low === high) ? (dots[low][axis] <= pivotValue ? low : low - 1) : low - 1 
     if (partitionIndex < startIndex || partitionIndex > endIndex) throw new Error("Partition index out of bounds!");
+
     return [partitionIndex, pivotValue];
   }
 
@@ -77,17 +87,18 @@ export class BSPTree {
    * Note: find a pivot that is guaranteed to create two partitions, to avoid infinite loops. Otherwise, return null.  
    * For this pivot point, there exists another element that is strictly larger. 
    */
-  findPartitioningPivot(axis) {
+  findPivot(axis) {
     if ((this.endIndex - this.startIndex) < this.config.doNotPartitionSize) return null;
-
     const { dots } = this;
-    const candidatePivotIndex = this.startIndex + Math.floor((this.endIndex - this.startIndex)/2); 
+    const candidatePivotIndex = this.startIndex + Math.ceil((this.endIndex - this.startIndex)/2); 
     const candiatePivotDot = dots[candidatePivotIndex];
     const candidateValue = candiatePivotDot[axis];
 
     let low = candidatePivotIndex - 1; 
     let high = candidatePivotIndex + 1;
 
+    // Note: Search from the candidate index outwards in both directions to find an element smaller or bigger.
+    // Note: We can only partition, if we find two dots with different value. 
     while (this.startIndex <= low || high <= this.endIndex) {
       if (this.startIndex <= low) {
         const value = dots[low][axis]; 
@@ -115,16 +126,16 @@ export class BSPTree {
 
   circleCollision(centerDot, radius, result=[]) {
     const bounds = this.bounds; 
-    const {maxX, minX, maxY, minY} = bounds;
+    const {maxX, lowerLimitX, maxY, lowerLimitY} = bounds;
 
     // Horizontal collision
     let horizontalCollision = false;
     let xPos = centerDot.x; 
-    if (minX !== null) {
+    if (lowerLimitX !== null) {
       if (maxX !== null) {
-        horizontalCollision = ((minX - radius) <= xPos) && (xPos <= (maxX + radius));
+        horizontalCollision = ((lowerLimitX - radius) <= xPos) && (xPos <= (maxX + radius));
       } else {
-        horizontalCollision = (minX - radius) <= xPos;
+        horizontalCollision = (lowerLimitX - radius) <= xPos;
       }
     } else {
       if (maxX !== null) {
@@ -137,11 +148,11 @@ export class BSPTree {
     // Vertial collision
     let verticalCollision = false;
     let yPos = centerDot.y; 
-    if (minY !== null) {
+    if (lowerLimitY !== null) {
       if (maxY !== null) {
-        verticalCollision = ((minY - radius) <= yPos) && (yPos <= (maxY + radius));
+        verticalCollision = ((lowerLimitY - radius) <= yPos) && (yPos <= (maxY + radius));
       } else {
-        verticalCollision = (minY - radius) <= yPos;
+        verticalCollision = (lowerLimitY - radius) <= yPos;
       }
     } else {
       if (maxY !== null) {
@@ -150,7 +161,6 @@ export class BSPTree {
         verticalCollision = true; 
       }
     }
-    
     if (verticalCollision && horizontalCollision) {
       if (this.lowPartition) {
         if (!this.highPartition) throw Error("should always have two partitions!");
@@ -169,7 +179,7 @@ export class BSPTree {
     while(index <= this.endIndex) {
       const otherDot = this.dots[index++];
       if (otherDot === centerDot) continue;
-      if (centerDot.distanceTo(otherDot) <= radius && centerDot.id < otherDot.id) { // Note: Id check guarantees unique edges.
+      if (centerDot.distanceTo(otherDot) <= radius) {
         result.push(otherDot); 
       }
     }

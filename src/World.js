@@ -12,7 +12,6 @@ export class World {
     let created = 0; 
     while (created++ < dotCount) {
       this.dots.push(new Dot({
-        id: created,
         x:getRandomInt(0, canvas.width), 
         y:getRandomInt(0, canvas.height),
         dx:getRandomNumber(-0.5, 0.5),
@@ -26,6 +25,7 @@ export class World {
   update() {
     this.moveObjects();
     this.collideObjects();
+    this.accellerate();
   }
 
   moveObjects() {
@@ -39,7 +39,9 @@ export class World {
     this.collideWithWalls();
     this.BSPTree = new BSPTree(this.dots, 0, this.dots.length-1);
     for (let dot of this.dots) {
-      dot.connections = this.BSPTree.circleCollision(dot, this.connectionRadius);
+      let connections = this.BSPTree.circleCollision(dot, this.connectionRadius);
+      connections = connections.filter(otherDot => otherDot.id < dot.id);  // Note: Id check guarantees unique edges.
+      dot.connections = connections;
       // console.log(dot.connections);
     }
   }
@@ -53,22 +55,20 @@ export class World {
     }
   }
 
+  accellerate() {}
+
   render(canvas, averageFramesPerSecond) {
     let context = canvas.getContext("2d");
     context.clearRect(0, 0, canvas.width, canvas.height);
     context.beginPath();
     context.moveTo(0,0);
-  
-    context = canvas.getContext("2d");
-    context.font = "12px serif";
-    context.moveTo(0,0);
-    context.fillText("FPS: " + averageFramesPerSecond, 10, 50);
-    context.moveTo(0,0);
-    
+
+    this.renderBSPTree(this.BSPTree, 5);
+     
     context = canvas.getContext("2d");
     this.dots.forEach((dot) => {
       context.beginPath();
-      context.arc(dot.x, dot.y, 10, 0, 2 * Math.PI, false);
+      context.arc(dot.x, dot.y, dot.size, 0, 2 * Math.PI, false);
       context.fillStyle = 'black';
       context.fill();
       context.lineWidth = 5;
@@ -91,7 +91,11 @@ export class World {
       })
     })
 
-    // this.renderBSPTree(this.BSPTree, 5);
+    context = canvas.getContext("2d");
+    context.font = "12px serif";
+    context.moveTo(0,0);
+    context.fillText("FPS: " + averageFramesPerSecond, 10, 50);
+    context.moveTo(0,0);
   }
 
   renderBSPTree(bspTree, level) {
@@ -100,14 +104,14 @@ export class World {
     if (bspTree.pivotValue === null) return;
 
     if (bspTree.horizontal) {
-      const topBound = Math.max(0, (bspTree.bounds.minY !== null) ? bspTree.bounds.minY : 0);
+      const topBound = Math.max(0, (bspTree.bounds.lowerLimitY !== null) ? bspTree.bounds.lowerLimitY : 0);
       const bottomBound = Math.min(canvas.height, (bspTree.bounds.maxY !== null) ? bspTree.bounds.maxY : canvas.height);
       context.beginPath();
       context.moveTo(bspTree.pivotValue, topBound);
       context.lineTo(bspTree.pivotValue, bottomBound);
       context.stroke();
     } else {
-      const leftBound = Math.max(0, (bspTree.bounds.minX !== null) ? bspTree.bounds.minX : 0);
+      const leftBound = Math.max(0, (bspTree.bounds.lowerLimitX !== null) ? bspTree.bounds.lowerLimitX : 0);
       const rightBound = Math.min(canvas.width, (bspTree.bounds.maxX !== null) ? bspTree.bounds.maxX : canvas.width);
       context.beginPath();
       context.moveTo(leftBound, bspTree.pivotValue);
