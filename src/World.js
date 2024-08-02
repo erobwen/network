@@ -1,19 +1,20 @@
-import { BSPTree } from "./library/BSPTree";
+import { BSPTree } from "./components/BSPTree";
 import { Dot } from "./model/Dot";
 import { getRandomInt, getRandomNumber } from "./utility";
 
 export class World {
   constructor(canvas) {
     this.dots = [];
-    this.connectionRadius = 300;
-    const dotCount = 100; 
+    this.connectionRadius = 200;
+    const dotCount = 200; 
     let created = 0; 
     while (created++ < dotCount) {
+      const speedMax = 1; 
       this.dots.push(new Dot({
         x:getRandomInt(0, canvas.width), 
         y:getRandomInt(0, canvas.height),
-        dx:getRandomNumber(-0.5, 0.5),
-        dy:getRandomNumber(-0.5, 0.5), // Note, will have more speed towards corners. 
+        dx:getRandomNumber(-speedMax, speedMax),
+        dy:getRandomNumber(-speedMax, speedMax), // Note, will have more speed towards corners. 
         size:getRandomNumber(2, 10),
         connections: []
       }));
