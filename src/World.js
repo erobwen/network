@@ -61,7 +61,7 @@ export class World {
     context.clearRect(0, 0, canvas.width, canvas.height);
     
     // Debug, render BSP tree
-    this.BSPTree.render(context, 5);
+    // this.BSPTree.render(context, 5);
      
     // Render all dots
     this.dots.forEach((dot) => {
