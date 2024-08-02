@@ -89,10 +89,9 @@ export class BSPTree {
   findPivot(axis) {
     if ((this.endIndex - this.startIndex) < this.config.doNotPartitionSize) return null;
     const { dots } = this;
-    const candidatePivotIndex = this.startIndex + Math.ceil((this.endIndex - this.startIndex)/2); 
-    const candiatePivotDot = dots[candidatePivotIndex];
-    const candidateValue = candiatePivotDot[axis];
 
+    const candidatePivotIndex = this.findPivotCandidate();
+    const candidateValue = dots[candidatePivotIndex][axis];
     let low = candidatePivotIndex - 1; 
     let high = candidatePivotIndex + 1;
 
@@ -121,6 +120,11 @@ export class BSPTree {
       low--;
     }
     return null; // Impossible to find partitioning pivot! All are equal! 
+  }
+
+  findPivotCandidate() {
+    const candidatePivotIndex = this.startIndex + Math.ceil((this.endIndex - this.startIndex)/2); 
+    return candidatePivotIndex;
   }
 
   circleCollision(centerDot, radius, result=[]) {
