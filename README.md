@@ -11,6 +11,8 @@ Robert Renbris
 
 ![Alt text](/screenshot.png?raw=true "Screenshot")
 
+*The app moves 200 nodes around the screen, drawing a line between nodes that come within 200 pixels of each other.* 
+
 # Design considerations. 
 
 This app was built using BSP (binary space partition) for collision detection. 
